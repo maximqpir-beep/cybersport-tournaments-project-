@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: cybertracker
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d cybertracker"]
+      interval: 5s
+      retries: 10
+  api:
+    build: ./backend
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: cybertracker
+      ORIGINS: http://localhost:3000,http://127.0.0.1:3000
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-local-dev-change-before-deployment}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+  web:
+    build: .
+    environment:
+      HOST: 0.0.0.0
+      PORT: "3000"
+    depends_on:
+      - api
+    ports:
+      - "3000:3000"
+volumes:
+  postgres_data:
