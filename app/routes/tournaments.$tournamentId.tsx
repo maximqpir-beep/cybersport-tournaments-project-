@@ -325,7 +325,7 @@ export default function TournamentDetailRoute() {
 					<CardHeader>
 						<CardTitle className="text-base">QR для прохода</CardTitle>
 						<CardDescription>
-							Только на этапе набора (recruiting), если вы участник турнира
+							На этапе набора (recruiting), после подтверждения вашей заявки
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="flex flex-col gap-4">
