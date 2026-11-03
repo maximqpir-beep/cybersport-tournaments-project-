@@ -1,22 +1,15 @@
-FROM node:alpine AS development-dependencies-env
-COPY . /app
+FROM node:24-bookworm-slim AS build
 WORKDIR /app
-RUN npm ci
-
-FROM node:alpine AS production-dependencies-env
-COPY ./package.json package-lock.json /app/
-WORKDIR /app
-RUN npm ci --omit=dev
-
-FROM node:alpine AS build-env
-COPY . /app/
-COPY --from=development-dependencies-env /app/node_modules /app/node_modules
-WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY . .
 RUN npm run build
-
-FROM node:alpine
-COPY ./package.json package-lock.json /app/
-COPY --from=production-dependencies-env /app/node_modules /app/node_modules
-COPY --from=build-env /app/build /app/build
+RUN npm prune --omit=dev --no-audit --no-fund
+FROM node:24-bookworm-slim
 WORKDIR /app
-CMD ["npm", "run", "start"]
+ENV NODE_ENV=production HOST=0.0.0.0 PORT=3000
+COPY --from=build /app/package.json ./
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/build ./build
+EXPOSE 3000
+CMD ["npm","run","start"]
